@@ -10,6 +10,7 @@ services:
             - 6006:6006
         volumes:
             - ./app/:/app/
+            - ./scripts/:/scripts/
         tty: true
         container_name: selfplay
         cap_add:
