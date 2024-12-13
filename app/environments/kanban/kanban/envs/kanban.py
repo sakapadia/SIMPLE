@@ -15,22 +15,22 @@ class KanbanEnv(gym.Env):
     def __init__(self, verbose = False, manual = False):
         super(KanbanEnv, self).__init__()
         self.name = 'kanban'
-        self.n_players = 3
+        self.n_players = 4
 
         self.manual = manual
 
-        self.board_size = 7
-        self.squares = self.board_size * self.board_size
+        #self.board_size = 7
+        #self.squares = self.board_size * self.board_size
 
-        self.tile_types = 11
+        #self.tile_types = 11
         
-        self.max_score = 100
+        #self.max_score = 100
         
-        self.total_positions = self.squares + self.n_players + 1
+        #self.total_positions = self.squares + self.n_players + 1
 
-        self.set_contents()
-        self.nets = [5,7,16, 24, 32, 41, 43]
-        self.total_tiles = sum([x['count'] for x in self.contents])
+        #self.set_contents()
+        #self.nets = [5,7,16, 24, 32, 41, 43]
+        #self.total_tiles = sum([x['count'] for x in self.contents])
 
         self.action_space = gym.spaces.Discrete(self.total_tiles  * 2)
         self.observation_space = gym.spaces.Box(0, 1, (self.total_positions * self.total_tiles + self.squares + 4 + self.n_players + self.action_space.n ,))

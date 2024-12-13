@@ -3,6 +3,8 @@ import random
 class Player():
     def __init__(self, id):
         self.id = id
+        self.points = 0
+        self.actions = 0
         self.position = Position()
         self.books = 0
         self.wildParts = 0
@@ -30,6 +32,7 @@ class Player():
         self.garages.append(garage3)
         self.garages.append(garage4)
         self.garages.append(garage5)
+        self.designs = [] #5 Design Tiles where 1 is locked
         self.certifications = [] # 5 booleans
 
 class Garage():
@@ -97,16 +100,29 @@ class Flower(Tile):
         self.symbol = '🌼'
 
 class Car(Tile):
-    def __init__(self, id, order, name):
+    def __init__(self, id, order, name, color):
         super(Car, self).__init__(id, order, name)
-        self.type = 'car'
+        self.color = color
+        if color == 'green':
+            self.value = 2
+        elif color == 'blue':
+            self.value = 3
+        elif color == 'grey':
+            self.value = 4
+        elif color == 'red':
+            self.value = 5
+        elif color == 'black':
+            self.value = 6
         self.symbol = '🌼'
         self.upgrades = []
 
-    def upgrade(self, upgradeID):
-        if upgradeID in self.upgrades:
+    #def availableUpgrades(self)
+        
+
+    def upgrade(self, partID):
+        if partID in self.upgrades:
             return False
-        self.upgrades.append(upgradeID)
+        self.upgrades.append(partID)
         return True
         
 class Dragonfly(Tile):
@@ -123,22 +139,7 @@ class Bee(Tile):
         self.value = -3
         self.symbol = 'BEE'
 
-class Honeycomb(Tile):
-    def __init__(self, id, order, name, value):
-        super(Honeycomb, self).__init__(id, order, name)
-        self.value = value
-        self.type = 'honeycomb'
-        self.symbol = f'🍯{value}'
-    
-class Wasp(Tile):
-    def __init__(self, id, order, name, value):
-        super(Wasp, self).__init__(id, order, name)
-        self.value = value
-        self.type = 'wasp'
-        self.symbol = f'🐝{value}'
 
-      
-       
 class DrawBag():
     def __init__(self, contents):
         self.contents = contents
@@ -172,8 +173,6 @@ class DrawBag():
                 
     def size(self):
         return len(self.tiles)
-
-  
 
 
 class Position():
@@ -228,15 +227,113 @@ class Position():
         #WASP
         score += sum([t.value for t in self.tiles if t.type == f'wasp'])
 
-
         return score
         
+class DesignDepartment:
+    def __init__(self):
+        self.designs = []  # List of available designs (populate during setup)
+        self.workstations = []  # Status of workstations (occupied = True)
 
+    def select_design(self, player, design_index):
+        # Logic for selecting a design
+        # player: The player object
+        # design_index: The index of the chosen design in self.designs
+        if self.workstations[player.workstation_id]: # Check if workstation is occupied
+            chosen_design = self.designs.pop(design_index)
+            player.designs.append(chosen_design) 
+            # Apply any design selection bonuses (Banked Shifts, Books, etc.)
+        else:
+            # Handle case where workstation is not occupied (e.g., penalty)
+            pass
+
+    #Determines the legal actions a player can take in the Design Department.
+    def get_legal_actions(self, player): 
+        # player: The player object
+        # Returns:  A list representing legal action IDs (e.g., 0 for select_design) 
+        legal_actions = []
+        if self.workstations[player.workstation_id]: 
+            if player.can_select_design(): # Check player-specific conditions
+                legal_actions.append(0)  # 0 represents "select_design" action
+        return legal_actions
+
+class LogisticsDepartment:
+    def __init__(self):
+        self.warehouses = {} # Dictionary to store car parts in warehouses
+        self.kanban_deck = [] # Deck of Kanban cards (populate during setup)
+        self.workstations = [False, False] # Status of workstations 
+
+    def issue_kanban_order(self, player, card_index):
+        #Player issues a Kanban order to stock warehouses.
+        #player: The player object
+        #card_index: The index of the Kanban card in the player's hand
+        if self.workstations[player.workstation_id]:
+            if player.can_issue_kanban_order(): 
+                kanban_card = player.hand.pop(card_index)
+                # Implement Kanban card logic to replenish warehouses 
+                player.hand.append(self.kanban_deck.pop()) # Draw new card
+                # Apply any Kanban order bonuses (e.g., Banked Shift)
+        else:
+            # Handle unoccupied workstation
+            pass
+
+    # Player collects car parts from a warehouse.
+    def collect_car_parts(self, player, warehouse_id, quantity):
+        #player: The player object
+        # warehouse_id: ID of the warehouse to collect from
+        # quantity: Number of parts to collect 
+        if self.workstations[player.workstation_id]:
+            if player.can_collect_car_parts():
+                # Implement logic to transfer parts from warehouse to player 
+                # (Check availability, storage limits, etc.)
+                pass
+        else: 
+            # Handle unoccupied workstation
+            pass
+
+    def get_legal_actions(self, player):
+        legal_actions = []
+        if self.workstations[player.workstation_id]:
+            if player.can_issue_kanban_order():
+                legal_actions.append(0) # Issue Kanban order
+            if player.can_collect_car_parts(): 
+                legal_actions.append(1) # Collect car parts
+        return legal_actions
+
+class AssemblyDepartment:
+    def __init__(self):
+        self.assembly_lines = {} # Data structure to represent assembly lines
+        self.demand_tiles = [] # Current demand tiles (populate during setup)
+        self.workstations = [False, False]
+
+    def provide_needed_part(self, player, part_type, assembly_line_id):
+        # Player provides a car part to an assembly line.
+            #player: The player object
+            #part_type: The type of car part being provided
+            #assembly_line_id: The ID of the target assembly line
+        if self.workstations[player.workstation_id]:
+            if player.can_provide_part():
+                # Implement logic to:
+                #  - Check if the part type is valid for the assembly line
+                #  - Deduct the part from the player or use a Parts Voucher
+                #  - Advance cars on the assembly line (potentially triggering scoring)
+                #  - Replenish the assembly line with a new car if needed 
+                #  - Award Speech tokens for fulfilling demand
+                pass
+        else:
+            # Handle unoccupied workstation
+            pass 
+
+    def get_legal_actions(self, player):
+        legal_actions = [] 
+        if self.workstations[player.workstation_id]: 
+            if player.can_provide_part():
+                legal_actions.append(0) # Provide car part
+        return legal_actions
+    
 class ResearchDepartment():
-    def __init__(self, size):
-        self.size = size
-        self.twoActions = False
-        self.threeActions = False
+    def __init__(self):
+        self.twoActions = None # a player goes here
+        self.threeActions = None
         track = {}
         self.greenCar = Car()
         self.blueCar = Car()
@@ -250,18 +347,124 @@ class ResearchDepartment():
         self.redRewards = []
         self.blackRewards = []
 
-    
-    def upgrade_car(self, carColorID, partID):
-        self.nets[position] = True
-    
-    def remove(self, position):
-        tile = self.tiles[position]
-        self.tiles[position] = None
-        return tile
+    def set_ThreeActions(self, player):
+        self.threeActions = player
 
-    def fill(self, tiles):
-        self.tiles = tiles
+    def set_TwoActions(self, player):
+        self.twoActions = player
+    
+    def upgrade_car(self, carColor, partId, rewardIndex, player):
+        answer = False
+        if carColor == 'green':
+            answer = self.greenCar.upgrade(partId)
+        elif carColor == 'blue':
+            answer = self.blueCar.upgrade(partId)
+        elif carColor == 'grey':
+            answer = self.greyCar.upgrade(partId)
+        elif carColor == 'red':
+            answer = self.redCar.upgrade(partId)
+        elif carColor == 'black':
+            answer = self.blackCar.upgrade(partId)
+            self.pickReward(self.blackCar, rewardIndex, player)
+        player.points += 2
+        return answer
+    
+    def pickReward(self, car, index, player):
+        if car.color == 'green':
+            if index in self.greenRewards:
+                return False
+            if index == 1 or index == 2:
+                player.bankShifts += 1
+            elif index == 3:
+                player.points += 4
+            elif index == 4:
+                player.points += 3
+            self.greenRewards.append(index)
+            return True
+        elif car.color == 'blue':
+            if index in self.blueRewards:
+                return False
+            if index == 1:
+                player.bankShifts += 1
+            elif index == 3:
+                player.points += 3
+            elif index == 4:
+                player.points += 2
+            self.blueRewards.append(index)
+        elif car.color == 'grey':
+            if index in self.greyRewards:
+                return False
+            if index == 1:
+                player.bankShifts += 1
+            elif index == 3:
+                player.points += 2
+            self.greyRewards.append(index)
+        elif car.color == 'red':
+            if index in self.redRewards:
+                return False
+            elif index == 3:
+                player.points += 1
+            self.redRewards.append(index)
+        elif car.color == 'black':
+            if index in self.blackRewards:
+                return False
+            self.blackRewards.append(index)
+        # these rewards are common to all cars
+        if index == 0:
+            player.bankShifts += 1
+        elif index == 5:
+            player.booksGained += 1
+        return True
+    
+    def claim_cars(self, player, car_indices):
+        #Player claims cars from the test track.
+            #player: The player object
+            #car_indices: A list of indices of cars to claim
+        if self.workstations[player.workstation_id]:
+            if player.can_claim_cars():
+                # Implement logic to:
+                #   - Verify the player has matching designs for the cars
+                #   - Deduct designs and spend Shifts based on car positions
+                #   - Transfer cars from test track to player's garage
+                #   - Advance the Pace Car and trigger Meetings if needed
+                #   - Apply garage bonuses
+                pass 
+        else: 
+            # Handle unoccupied workstation
+            pass
 
+    def train(self):
+        pass
+    
+    def get_legal_actions(self, player):
+        legal_actions = []
+        if self.workstations[player.workstation_id]:
+            if player.can_claim_cars():
+                legal_actions.append(0) # Claim cars
+            if player.can_upgrade_design():
+                legal_actions.append(1) # Upgrade design
+        return legal_actions
+
+class AdministrationDepartment: 
+    def __init__(self):
+        self.workstations = [False] # Only one workstation 
+
+    def train(self, player):
+        # Player trains in Administration, allowing them to choose another department.
+            # player: The player object
+        if self.workstations[player.workstation_id]:
+            # Implement training logic, allowing player to choose another department
+            # for additional actions. 
+            pass
+        else:
+            # Handle unoccupied workstation
+            pass
+
+    def get_legal_actions(self, player):
+        legal_actions = []
+        if self.workstations[player.workstation_id]:
+            legal_actions.append(0) # Train in Administration
+        return legal_actions
 
 class Board():
     def __init__(self, size):
