@@ -17,13 +17,15 @@ class KanbanEnv(gym.Env):
         self.name = 'kanban'
         self.n_players = 4
         self.departments = {
-            "Research": ResearchDepartment()
-            #"Logistics": LogisticsDepartment(),
-            # ... other departments
+            "Research": ResearchDepartment(),
+            "Assembly": AssemblyDepartment(),
+            "Logistics": LogisticsDepartment(),
+            "Design": DesignDepartment(),
+            "Administration": AdministrationDepartment(),
         }
         self.manual = manual
 
-        self.action_space = gym.spaces.Discrete(10) #option to make it dynamic
+        self.action_space = gym.spaces.Discrete(10) #option to make it dynamic within step function
         self.observation_space = gym.spaces.Box(0, 1, (self.total_positions * self.total_tiles + self.squares + 4 + self.n_players + self.action_space.n ,))
         self.verbose = verbose
 
@@ -40,12 +42,6 @@ class KanbanEnv(gym.Env):
 
         for value in range(1,10):
             self.contents.append({'tile': Dragonfly, 'info': {'name': 'dragonfly', 'value': value}, 'count':  1})
-
-        for value in range(1,10):
-            self.contents.append({'tile': LightningBug,  'info': {'name': 'lightningbug', 'value': value}, 'count':  1})
-
-        for value in range(1,10):
-            self.contents.append({'tile': Cricket, 'info': {'name': 'cricket', 'value': value}, 'count':  1})
 
         self.contents.append({'tile': Bee, 'info': {'name': 'bee'}, 'count':  6})
 

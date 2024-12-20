@@ -3,6 +3,7 @@ import random
 class Player():
     def __init__(self, id):
         self.id = id
+        self.workstation_id = 0 # set to whereever the meeple is
         self.points = 0
         self.actions = 0
         self.position = Position()
@@ -117,20 +118,13 @@ class Car(Tile):
         self.upgrades = []
 
     #def availableUpgrades(self)
-        
 
     def upgrade(self, partID):
         if partID in self.upgrades:
             return False
         self.upgrades.append(partID)
         return True
-        
-class Dragonfly(Tile):
-    def __init__(self, id, order, name, value):
-        super(Dragonfly, self).__init__(id, order, name)
-        self.value = value
-        self.type = 'dragonfly'
-        self.symbol = f'🐲{value}'
+
 
 class Bee(Tile):
     def __init__(self, id, order, name):
@@ -240,8 +234,12 @@ class DesignDepartment:
         # design_index: The index of the chosen design in self.designs
         if self.workstations[player.workstation_id]: # Check if workstation is occupied
             chosen_design = self.designs.pop(design_index)
-            player.designs.append(chosen_design) 
+            player.designs.append(chosen_design)
             # Apply any design selection bonuses (Banked Shifts, Books, etc.)
+            if design_index < 2:
+                player.booksGained += 1
+            elif design_index < 4:
+                player.bankShifts += 1
         else:
             # Handle case where workstation is not occupied (e.g., penalty)
             pass
@@ -255,6 +253,12 @@ class DesignDepartment:
             if player.can_select_design(): # Check player-specific conditions
                 legal_actions.append(0)  # 0 represents "select_design" action
         return legal_actions
+    
+    def populateDesigns(self):
+        #use drawbag to add 10 random Design tiles where 0-1 give books and 2-3 give shifts 8-9 are locked
+        pass
+    
+
 
 class LogisticsDepartment:
     def __init__(self):
@@ -332,8 +336,7 @@ class AssemblyDepartment:
     
 class ResearchDepartment():
     def __init__(self):
-        self.twoActions = None # a player goes here
-        self.threeActions = None
+        self.workstations = [None, None]
         track = {}
         self.greenCar = Car()
         self.blueCar = Car()
@@ -346,12 +349,6 @@ class ResearchDepartment():
         self.greyRewards = []
         self.redRewards = []
         self.blackRewards = []
-
-    def set_ThreeActions(self, player):
-        self.threeActions = player
-
-    def set_TwoActions(self, player):
-        self.twoActions = player
     
     def upgrade_car(self, carColor, partId, rewardIndex, player):
         answer = False
@@ -418,8 +415,8 @@ class ResearchDepartment():
     
     def claim_cars(self, player, car_indices):
         #Player claims cars from the test track.
-            #player: The player object
-            #car_indices: A list of indices of cars to claim
+        #player: The player object
+        #car_indices: A list of indices of cars to claim
         if self.workstations[player.workstation_id]:
             if player.can_claim_cars():
                 # Implement logic to:
