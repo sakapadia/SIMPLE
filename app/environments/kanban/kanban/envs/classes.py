@@ -169,6 +169,56 @@ class DrawBag():
         return len(self.tiles)
 
 
+class CarNode():
+    def __init__(self, id, car):
+        self.id = id
+        self.neighbors = []
+        self.car = car
+
+class AssemblyGraph():
+    def __init__(self):
+        self.rows = [] # there are 5 corresponding to each car type, each contains the list of parts within a row
+
+
+        # creating car assembly graph
+        self.graph = []
+        node1 = CarNode(1, None)
+        node2 = CarNode(2, None)
+        node3 = CarNode(3, None)
+        node4 = CarNode(4, None)
+        node5 = CarNode(5, None)
+        node6 = CarNode(6, None)
+        node7 = CarNode(7, Car("grey"))
+        node8 = CarNode(8, Car("green"))
+        node9 = CarNode(9, Car("blue"))
+        node10 = CarNode(10, Car("red"))
+        node11 = CarNode(11, Car("grey"))
+        node12 = CarNode(12, Car("green"))
+        node13 = CarNode(13, Car("blue"))
+        node14 = CarNode(14, Car("black"))
+        node15 = CarNode(15, Car("red"))
+        node16 = CarNode(16, Car("black"))
+        self.graph.append(node1)
+        self.graph.append(node2)
+        self.graph.append(node3)
+        self.graph.append(node4)
+        self.graph.append(node5)
+        self.graph.append(node6)
+        self.graph.append(node7)
+        self.graph.append(node8)
+        self.graph.append(node9)
+        self.graph.append(node10)
+        self.graph.append(node11)
+        self.graph.append(node13)
+        self.graph.append(node14)
+        self.graph.append(node15)
+        self.graph.append(node16)
+    
+    def givePart(self, partIndex, car):
+        if car.color == 'green':
+            if partIndex in car.upgrades:
+                pass
+
 class Position():
     def __init__(self):
         self.tiles = []  
@@ -243,6 +293,11 @@ class DesignDepartment:
         else:
             # Handle case where workstation is not occupied (e.g., penalty)
             pass
+
+    def can_select_design(self, player):
+        if len(player.designs) > 3 and not player.certifications[4]:
+            return False
+        return True
 
     #Determines the legal actions a player can take in the Design Department.
     def get_legal_actions(self, player): 
