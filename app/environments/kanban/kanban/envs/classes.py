@@ -15,6 +15,8 @@ class Player():
         self.speechBubblesGained = 0
         self.booksGained = 0
         self.designTiles = []
+        self.testedDesigns = []
+        self.upgradedDesigns = []
         self.parts = []
         self.kanbanOrders = [] #can be a tuple too
         self.garages = [] #self.garage = Garage()
@@ -101,8 +103,8 @@ class Flower(Tile):
         self.symbol = '🌼'
 
 class Car(Tile):
-    def __init__(self, id, order, name, color):
-        super(Car, self).__init__(id, order, name)
+    def __init__(self, id, name, color):
+        super(Car, self).__init__(id, name)
         self.color = color
         if color == 'green':
             self.value = 2
@@ -178,8 +180,8 @@ class CarNode():
 class AssemblyGraph():
     def __init__(self):
         self.rows = [] # there are 5 corresponding to each car type, each contains the list of parts within a row
-
-
+        for i in range(4):
+            self.rows.append([])
         # creating car assembly graph
         self.graph = []
         node1 = CarNode(1, None)
@@ -214,9 +216,13 @@ class AssemblyGraph():
         self.graph.append(node15)
         self.graph.append(node16)
     
-    def givePart(self, partIndex, car):
+    def givePart(self, partIndex, car, rowIndex, player):
         if car.color == 'green':
-            if partIndex in car.upgrades:
+            if partIndex in greencar.upgrades:
+                if partIndex not in self.rows[rowIndex]:
+                    #can be given in
+                    self.rows[rowIndex].append(partIndex)
+                    player.parts[partIndex] -= 1
                 pass
 
 class Position():
@@ -498,8 +504,9 @@ class ResearchDepartment():
         return legal_actions
 
 class AdministrationDepartment: 
-    def __init__(self):
-        self.workstations = [False] # Only one workstation 
+    def __init__(self, track):
+        self.workstations = [False] # Only one workstation
+        self.certificationTrack = track
 
     def train(self, player):
         # Player trains in Administration, allowing them to choose another department.
@@ -518,17 +525,29 @@ class AdministrationDepartment:
             legal_actions.append(0) # Train in Administration
         return legal_actions
 
+class CertificationTrack():
+    def __init__(self, players):
+        self.players = players
+        self.rewards = [] # there are 1 random ones that must be drawn in setup
+        # True for the first person that reaches the end of the track
+        self.speechbubble = False 
+        # 0-5, when a player moves up they add themselves to a list of players at that location
+        self.trackPositions = [[]] * 6
+        for player in self.players:
+            self.trackPositions[0].append(player) 
+
 class Board():
-    def __init__(self, size):
-        self.size = size
-        self.squares = size * size
-        self.tiles = [None] * self.squares 
-        self.nets = [False] * self.squares 
-        self.hudson = 0
-        self.hudson_facing = 'R'
-    
-    def add_net(self, position):
-        self.nets[position] = True
+    def __init__(self, size, players):
+        self.greenCar = Car(0,"green")
+        self.blueCar = Car(1,"blue")
+        self.greyCar = Car(2,"grey")
+        self.redCar = Car(3, "red")
+        self.blackCar = Car(4, "black")
+        self.assemblyDepartment = AssemblyDepartment(CertificationTrack(players))
+        self.logistics = LogisticsDepartment(CertificationTrack(players))
+        self.designDepartment = DesignDepartment(CertificationTrack(players))
+        self.researchDevDepartment = ResearchDepartment(CertificationTrack(players))
+        self.administrationDepartment = AdministrationDepartment(CertificationTrack(players))
     
     def remove(self, position):
         tile = self.tiles[position]
