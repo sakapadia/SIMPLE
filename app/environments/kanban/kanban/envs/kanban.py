@@ -63,7 +63,7 @@ class KanbanEnv(gym.Env):
                 obs[s][tile.id] = 1
                 # print(s, tile.id)
 
-        # print('Positions')
+        # print('Positions')s
         for i in range(self.n_players):
             player = self.players[player_num]
 
@@ -288,7 +288,7 @@ class KanbanEnv(gym.Env):
         self.done = False
         logger.debug(f'\n\n---- NEW GAME ----')
 
-        self.board = Board(self.board_size)
+        self.board = Board(self.players)
         
         self.board.fill(self.drawbag.draw(self.squares))
 

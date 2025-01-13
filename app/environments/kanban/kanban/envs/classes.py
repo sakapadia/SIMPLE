@@ -216,14 +216,7 @@ class AssemblyGraph():
         self.graph.append(node15)
         self.graph.append(node16)
     
-    def givePart(self, partIndex, car, rowIndex, player):
-        if car.color == 'green':
-            if partIndex in greencar.upgrades:
-                if partIndex not in self.rows[rowIndex]:
-                    #can be given in
-                    self.rows[rowIndex].append(partIndex)
-                    player.parts[partIndex] -= 1
-                pass
+    
 
 class Position():
     def __init__(self):
@@ -334,6 +327,7 @@ class LogisticsDepartment:
         if self.workstations[player.workstation_id]:
             if player.can_issue_kanban_order(): 
                 kanban_card = player.hand.pop(card_index)
+                
                 # Implement Kanban card logic to replenish warehouses 
                 player.hand.append(self.kanban_deck.pop()) # Draw new card
                 # Apply any Kanban order bonuses (e.g., Banked Shift)
@@ -370,6 +364,14 @@ class AssemblyDepartment:
         self.demand_tiles = [] # Current demand tiles (populate during setup)
         self.workstations = [False, False]
 
+    def givePart(self, partIndex, car, rowIndex, player):
+        if car.color == 'green':
+            if partIndex in greencar.upgrades:
+                if partIndex not in self.rows[rowIndex]:
+                    #can be given in
+                    self.rows[rowIndex].append(partIndex)
+                    player.parts[partIndex] -= 1
+                pass
     def provide_needed_part(self, player, part_type, assembly_line_id):
         # Player provides a car part to an assembly line.
             #player: The player object
