@@ -128,14 +128,6 @@ class Car(Tile):
         return True
 
 
-class Bee(Tile):
-    def __init__(self, id, order, name):
-        super(Bee, self).__init__(id, order, name)
-        self.type = 'bee'
-        self.value = -3
-        self.symbol = 'BEE'
-
-
 class DrawBag():
     def __init__(self, contents):
         self.contents = contents
@@ -215,7 +207,6 @@ class AssemblyGraph():
         self.graph.append(node14)
         self.graph.append(node15)
         self.graph.append(node16)
-    
     
 
 class Position():
@@ -550,11 +541,13 @@ class Board():
         self.designDepartment = DesignDepartment(CertificationTrack(players))
         self.researchDevDepartment = ResearchDepartment(CertificationTrack(players))
         self.administrationDepartment = AdministrationDepartment(CertificationTrack(players))
+        self.certificationsTrack = [None] * 24 # first 4 slots should be filled up when game resets
+        self.players = []
+        self.currentPlayerNum = 0
     
-    def remove(self, position):
-        tile = self.tiles[position]
-        self.tiles[position] = None
-        return tile
+    def updateCertificationsTrack(self, newPosition):
+        if certificationsTrack[newPosition] == None and newPosition:
+
 
     def fill(self, tiles):
         self.tiles = tiles

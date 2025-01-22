@@ -27,7 +27,7 @@ class KanbanEnv(gym.Env):
 
         self.action_space = gym.spaces.Discrete(10) #option to make it dynamic within step function
         self.observation_space = gym.spaces.Box(0, 1, (self.total_positions * self.total_tiles + self.squares + 4 + self.n_players + self.action_space.n ,))
-        self.verbose = verbose
+        #self.verbose = verbose
 
 
     def set_contents(self):
@@ -45,15 +45,10 @@ class KanbanEnv(gym.Env):
 
         self.contents.append({'tile': Bee, 'info': {'name': 'bee'}, 'count':  6})
 
-        for value in range(10,16):
-            self.contents.append({'tile': Honeycomb, 'info': {'name': 'honeycomb', 'value': value}, 'count':  1})
-        
-        for value in range(-4,-8, -1):
-            self.contents.append({'tile': Wasp, 'info': {'name': 'wasp', 'value': value}, 'count':  1})
-
         
     @property
     def observation(self):
+        
         obs = np.zeros(([self.total_positions, self.total_tiles]))
         player_num = self.current_player_num
 
@@ -120,50 +115,10 @@ class KanbanEnv(gym.Env):
 
     @property
     def legal_actions(self):
+        # action phase
+        # current meeple location
+        # 
         legal_actions = np.zeros(self.action_space.n)
-
-        # UP / DOWN
-        for factor in [-1,1]:
-            if (factor == -1 and self.board.hudson_facing == 'D') or (factor == 1 and self.board.hudson_facing == 'U'):
-                pass
-            else:
-                current_square = self.board.hudson
-                found_net = False
-                for i in range(self.board_size):
-                    current_square = current_square + factor * self.board_size
-                    if 0 <= current_square < self.squares:
-                        tile = self.board.tiles[current_square]
-                        if tile is not None:
-                            legal_actions[tile.id] = 1
-                            if found_net:
-                                legal_actions[tile.id + self.total_tiles] = 1
-                        else:
-                            if self.board.nets[current_square] == 1:
-                                found_net = True
-                    else:
-                        break
-
-        # LEFT / RIGHT
-        for factor in [-1,1]:
-            if (factor == -1 and self.board.hudson_facing == 'R') or (factor == 1 and self.board.hudson_facing == 'L'):
-                pass
-            else:
-                current_square = self.board.hudson
-                found_net = False
-                for i in range(self.board_size):
-                    current_square = current_square + factor
-                    if (factor == 1 and current_square % self.board_size != 0) or (factor == -1 and current_square % self.board_size != self.board_size - 1) :
-                        tile = self.board.tiles[current_square]
-                        if tile is not None:
-                            legal_actions[tile.id] = 1
-                            if found_net:
-                                legal_actions[tile.id + self.total_tiles] = 1
-                        else:
-                            if self.board.nets[current_square] == 1:
-                                found_net = True
-                    else:
-                        break
-
 
         return legal_actions
 
